@@ -97,7 +97,7 @@ def lookup(target_name, qtype, active=None):
     if active is None:
         active = set()
 
-    if key in active or len(active) >= 15:
+    if key in active:
         return dns.message.make_response(query)
 
     active.add(key)

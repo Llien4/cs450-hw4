@@ -32,7 +32,7 @@ ROOT_SERVERS = ("198.41.0.4",
                 "193.0.14.129",
                 "199.7.83.42",
                 "202.12.27.33")
-#
+
 cache = {}
 ns_cache = {}
 
@@ -101,15 +101,12 @@ def lookup(target_name, qtype, active=None):
         return dns.message.make_response(query)
 
     active.add(key)
-
     try:
         servers = [[list(ROOT_SERVERS), [], None]]
-
         best_zone = None
 
         for zone in ns_cache:
             name = dns.name.from_text(zone)
-
             if target_name.is_subdomain(name):
                 if best_zone is None or len(name.labels) > len(best_zone.labels):
                     best_zone = name
@@ -127,12 +124,10 @@ def lookup(target_name, qtype, active=None):
 
             if addresses:
                 server = addresses.pop(0)
-
                 if server in tried:
                     continue
 
                 tried.add(server)
-
                 try:
                     response = dns.query.udp(query, server, timeout=3)
                 except Exception:
@@ -150,11 +145,9 @@ def lookup(target_name, qtype, active=None):
                 if response.answer:
                     found = False
                     cname = None
-
                     for rrset in response.answer:
                         if rrset.rdtype == qtype:
                             found = True
-
                         if rrset.rdtype == dns.rdatatype.CNAME:
                             for record in rrset:
                                 cname = record.target
@@ -162,7 +155,6 @@ def lookup(target_name, qtype, active=None):
                     if cname is not None:
                         if qtype == dns.rdatatype.CNAME or not found:
                             result = lookup(cname, qtype, active)
-
                             for rrset in result.answer:
                                 if rrset not in response.answer:
                                     response.answer.append(rrset)
@@ -172,12 +164,10 @@ def lookup(target_name, qtype, active=None):
 
                 ns_names = []
                 next_zone = None
-
                 for rrset in response.authority:
                     if rrset.rdtype == dns.rdatatype.NS:
                         if target_name.is_subdomain(rrset.name):
                             next_zone = rrset.name
-
                             for record in rrset:
                                 ns_names.append(record.target)
 
@@ -189,7 +179,6 @@ def lookup(target_name, qtype, active=None):
 
                 next_ips = []
                 glued = set()
-
                 for rrset in response.additional:
                     if rrset.rdtype == dns.rdatatype.A:
                         if rrset.name in ns_names:
@@ -202,7 +191,6 @@ def lookup(target_name, qtype, active=None):
                     ns_cache[str(next_zone).lower()] = list(next_ips)
 
                 missing_ns = []
-
                 for ns in ns_names:
                     if ns not in glued:
                         missing_ns.append(ns)
@@ -213,7 +201,6 @@ def lookup(target_name, qtype, active=None):
             elif missing:
                 ns = missing.pop(0)
                 result = lookup(ns, dns.rdatatype.A, active)
-
                 for rrset in result.answer:
                     if rrset.rdtype == dns.rdatatype.A:
                         for record in rrset:
@@ -222,7 +209,6 @@ def lookup(target_name, qtype, active=None):
 
                 if addresses and zone is not None:
                     zone_key = str(zone).lower()
-                    
                     if zone_key not in ns_cache:
                         ns_cache[zone_key] = []
 
@@ -233,7 +219,6 @@ def lookup(target_name, qtype, active=None):
                 servers.pop()
 
         return dns.message.make_response(query)
-
     finally:
         active.remove(key)
 
@@ -262,12 +247,10 @@ def main():
     for a_domain_name in program_args.name:
         try:
             results = collect_results(a_domain_name)
-
             if any(results.values()):
                 print_results(results)
             else:
                 print("No DNS records found for", a_domain_name)
-
         except Exception:
             print("Could not resolve", a_domain_name)
 if __name__ == "__main__":

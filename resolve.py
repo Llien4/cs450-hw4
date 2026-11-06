@@ -250,8 +250,8 @@ def main():
             if any(results.values()):
                 print_results(results)
             else:
-                print("No DNS records found for", a_domain_name)
+                print("Could not found DNS records")
         except Exception:
-            print("Could not resolve", a_domain_name)
+            print("Not resolvable")
 if __name__ == "__main__":
     main()
